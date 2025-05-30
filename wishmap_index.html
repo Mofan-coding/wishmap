@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>愿望星图 Wish Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body { margin: 0; padding: 0; font-family: sans-serif; background: #000; color: #fff; }
+    #map { position: absolute; top: 70px; bottom: 0; width: 100%; }
+    h1 { margin: 10px 20px; font-weight: 300; }
+    .form-box { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; z-index: 10; }
+    .form-box input, .form-box button {
+      padding: 6px; margin: 3px 0; width: 200px; border: none; border-radius: 4px;
+    }
+    .form-box button { background: #FFD700; color: #000; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>愿望星图 WishMap</h1>
+  <div class="form-box">
+    <input type="text" id="wishInput" placeholder="写下你的愿望"><br>
+    <button onclick="submitWish()">点亮愿望</button>
+  </div>
+  <div id="map"></div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibW9mYW56IiwiYSI6ImNtYmJmN2Q5cDFobHoycnB0dm1nbDJwMG8ifQ.r1SPoeWPRXMdt6Y7zZNs7w';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v10',
+      center: [116.38, 39.9],
+      zoom: 1.5
+    });
+
+    const airtableBase = "app1gYqf5iHBwYUrQ";
+    const airtableToken = "patJmCEOHUS46kWh4.d2f51ce4144111f80bcf2c5796fae4149f65369b93eca4bef38f48a710dc2647";
+    const tableUrl = `https://api.airtable.com/v0/${airtableBase}/Wishes`;
+
+    async function fetchWishes() {
+      const res = await fetch(tableUrl, {
+        headers: {
+          Authorization: `Bearer ${airtableToken}`
+        }
+      });
+      const data = await res.json();
+      data.records.forEach(record => {
+        const f = record.fields;
+        if (f.Latitude && f.Longitude && f.Wish) {
+          new mapboxgl.Marker({ color: "#FFD700" })
+            .setLngLat([f.Longitude, f.Latitude])
+            .setPopup(new mapboxgl.Popup().setText(f.Wish))
+            .addTo(map);
+        }
+      });
+    }
+
+    async function submitWish() {
+      const wishText = document.getElementById("wishInput").value;
+      if (!wishText) return alert("请输入愿望");
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const payload = {
+          fields: {
+            Wish: wishText,
+            Latitude: lat,
+            Longitude: lon,
+            Timestamp: new Date().toISOString()
+          }
+        };
+        await fetch(tableUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${airtableToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        new mapboxgl.Marker({ color: "#FFD700" })
+          .setLngLat([lon, lat])
+          .setPopup(new mapboxgl.Popup().setText(wishText))
+          .addTo(map);
+        document.getElementById("wishInput").value = "";
+      });
+    }
+
+    fetchWishes();
+  </script>
+</body>
+</html>
