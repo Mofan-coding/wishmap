@@ -95,22 +95,31 @@
 
     // Fetch wishes on load
     fetch('/api/wishes')
-      .then(res => res.json())
-      .then(data => {
-        data.records.forEach(record => {
-          const lat = record.fields.Latitude;
-          const lon = record.fields.Longitude;
-          const wish = record.fields.Wish;
-          console.log('📍 Marker:', { wish, lat, lon });
+  .then(res => res.json())
+  .then(data => {
+    data.records.forEach(record => {
+      const fields = record.fields;
+      const lat = fields.Latitude;
+      const lon = fields.Longitude;
+      const wish = fields.Wish;
 
-          if (!wish || !lat || !lon) return;
-          
-          new mapboxgl.Marker({ color: "#FFD700" })
-            .setLngLat([lon, lat])
-            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${wish}</strong>`))
-            .addTo(map);
-        });
-      });
-  </script>
-</body>
-</html>
+      console.log("📍 加载愿望：", { wish, lat, lon });
+
+      if (!wish || !lat || !lon) {
+        console.warn("❗️字段缺失，跳过：", fields);
+        return;
+      }
+
+      new mapboxgl.Marker({ color: "#FFD700" })
+        .setLngLat([lon, lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(wish))
+        .addTo(map);
+    });
+  })
+  .catch(err => {
+    console.error("❌ 获取愿望失败：", err);
+  });
+
+
+
+
