@@ -106,7 +106,9 @@
 
         data.records.forEach(record => {
           const fields = record.fields;
-          const key = `${fields.Latitude},${fields.Longitude}`;
+          // 修改 wish 聚合 key，统一精度
+          const key = `${Number(fields.Latitude).toFixed(3)},${Number(fields.Longitude).toFixed(3)}`;
+
           if (!grouped[key]) grouped[key] = [];
           grouped[key].push(fields.Wish);
         });
