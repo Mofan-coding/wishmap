@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>愿望星图 WishMap</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #111; color: #fff; overflow: hidden; }
+    #header { position: absolute; top: 20px; width: 100%; text-align: center; z-index: 2; font-size: 20px; color: #ffd700; font-weight: bold; text-shadow: 1px 1px 4px #000; }
+    #subtext { position: absolute; top: 55px; width: 100%; text-align: center; z-index: 2; font-size: 14px; color: #ccc; text-shadow: 0 0 3px #000; }
+    #centerBox {
+      position: absolute; top: 110px; left: 50%; transform: translateX(-50%); z-index: 3;
+      display: flex; flex-direction: row; align-items: center;
+    }
+    #wishInput {
+      padding: 10px; font-size: 14px; width: 280px; border-radius: 5px; border: none; outline: none;
+    }
+    #submitWish {
+      margin-left: 10px; padding: 10px 18px; font-size: 14px; border: none; border-radius: 5px;
+      background-color: #ffd700; color: #000; font-weight: bold; cursor: pointer;
+    }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
+  </style>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+  <div id="header">愿望星图 WishMap</div>
+  <div id="subtext">与你所在的世界，共同点亮奇迹 ✨</div>
+  <div id="centerBox">
+    <input type="text" id="wishInput" placeholder="写下你的愿望..." />
+    <button id="submitWish">点亮愿望</button>
+  </div>
+  <div id="map"></div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibW9mYW56IiwiYSI6ImNtYmJmN2Q5cDFobHoycnB0dm1nbDJwMG8ifQ.r1SPoeWPRXMdt6Y7zZNs7w';
+    const baseId = 'app1gYqf5iHBwYUrQ';
+    const tableName = 'Wishes';
+    const airtableToken = 'patJmCEOHUS46kWh4';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [116.4074, 39.9042],
+      zoom: 2.3,
+      projection: 'mercator'
+    });
+
+    // 彩蛋触发关键词
+    const specialWords = ['love', 'peace', 'freedom', '宇宙', '奇迹'];
+
+    document.getElementById('submitWish').addEventListener('click', async () => {
+      const wish = document.getElementById('wishInput').value;
+      if (!wish) return alert('请输入愿望');
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        const response = await fetch(`https://api.airtable.com/v0/${baseId}/${tableName}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${airtableToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            fields: {
+              Wish: wish,
+              Latitude: lat,
+              Longitude: lon,
+              Timestamp: new Date().toISOString()
+            }
+          })
+        });
+
+        if (response.ok) {
+          new mapboxgl.Marker({ color: "#ffd700" })
+            .setLngLat([lon, lat])
+            .setPopup(new mapboxgl.Popup().setText("💫 " + wish))
+            .addTo(map);
+
+          // 彩蛋效果
+          if (specialWords.some(word => wish.includes(word))) {
+            alert("🌟 宇宙已收到你的奇迹信号！");
+          } else {
+            alert("愿望已点亮 ✨");
+          }
+
+          document.getElementById('wishInput').value = '';
+        } else {
+          alert("提交失败，请稍后再试。");
+        }
+      }, () => {
+        alert("无法获取位置，请检查定位权限。");
+      });
+    });
+  </script>
+</body>
+</html>
