@@ -113,6 +113,13 @@
       new mapboxgl.Marker({ color: "#FFD700" })
         .setLngLat([lon, lat])
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<div style="font-size:16px;color:#fff;">${wish}</div>`))
+        .setPopup(
+  new mapboxgl.Popup({
+          offset: 25,
+          maxWidth: "200px" // 解决宽度限制问题
+        }).setHTML(`<div style="color: white; font-size: 14px; padding: 4px;">${wish || '愿望加载失败 ❌'}</div>`)
+      )
+
 
         .addTo(map);
     });
