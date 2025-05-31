@@ -29,8 +29,7 @@ export default async function handler(req, res) {
         fields: {
           Wish: wish,
           Latitude: latitude,
-          Longitude: longitude,
-          Timestamp: new Date().toISOString()
+          Longitude: longitude
         }
       })
     });
