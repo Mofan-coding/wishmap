@@ -72,8 +72,8 @@
     function submitWish() {
       navigator.geolocation.getCurrentPosition(pos => {
         const wish = document.getElementById('wishInput').value;
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
+        const lat = Number(pos.coords.latitude).toFixed(3);
+        const lon = Number(pos.coords.longitude).toFixed(3);
 
         // 彩蛋关键词触发
         const keywords = ['爱', '和平', '奇迹', '健康', '发财'];
