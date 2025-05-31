@@ -107,7 +107,7 @@
           
           new mapboxgl.Marker({ color: "#FFD700" })
             .setLngLat([lon, lat])
-            .setPopup(new mapboxgl.Popup().setText(wish))
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>${wish}</strong>`))
             .addTo(map);
         });
       });
