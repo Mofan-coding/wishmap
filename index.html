@@ -72,8 +72,10 @@
     function submitWish() {
       navigator.geolocation.getCurrentPosition(pos => {
         const wish = document.getElementById('wishInput').value;
-        const lat = Number(pos.coords.latitude).toFixed(3);
-        const lon = Number(pos.coords.longitude).toFixed(3);
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+ 
 
         // 彩蛋关键词触发
         const keywords = ['爱', '和平', '奇迹', '健康', '发财'];
@@ -107,7 +109,8 @@
         data.records.forEach(record => {
           const fields = record.fields;
           // 修改 wish 聚合 key，统一精度
-          const key = `${Number(fields.Latitude).toFixed(3)},${Number(fields.Longitude).toFixed(3)}`;
+ 
+          const key = `${fields.Latitude},${fields.Longitude}`;
 
           if (!grouped[key]) grouped[key] = [];
           grouped[key].push(fields.Wish);
