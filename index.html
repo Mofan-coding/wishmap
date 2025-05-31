@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>愿望星图 | WishMap</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; font-family: 'Helvetica Neue', sans-serif; background-color: #000; color: #fff; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .overlay {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .overlay input {
+            padding: 6px;
+            width: 250px;
+        }
+        .overlay button {
+            padding: 6px 12px;
+            background: gold;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .slogan {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="overlay">
+        <input type="text" id="wishInput" placeholder="写下你的愿望" />
+        <button onclick="submitWish()">点亮愿望</button>
+    </div>
+    <div class="slogan">和世界一起创造你的奇迹 ✨</div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibW9mYW56IiwiYSI6ImNtYmJmN2Q5cDFobHoycnB0dm1nbDJwMG8ifQ.r1SPoeWPRXMdt6Y7zZNs7w';
+        const baseId = 'app1gYqf5iHBwYUrQ';
+        const tableName = 'Wishes';
+        const airtableToken = 'patJmCEOHUS46kWh4';
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v10',
+            center: [0, 30],
+            zoom: 2
+        });
+
+        function submitWish() {
+            const wish = document.getElementById('wishInput').value;
+            if (!wish) return alert("请输入你的愿望");
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                fetch(`https://api.airtable.com/v0/${baseId}/${tableName}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${airtableToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fields: {
+                            Wish: wish,
+                            Latitude: lat,
+                            Longitude: lng,
+                            Timestamp: new Date().toISOString()
+                        }
+                    })
+                }).then(res => res.json())
+                .then(() => {
+                    new mapboxgl.Marker({ color: "yellow" })
+                        .setLngLat([lng, lat])
+                        .setPopup(new mapboxgl.Popup().setText(wish))
+                        .addTo(map);
+
+                    if (/520|999|love|爱|奇迹|和平|健康/.test(wish.toLowerCase())) {
+                        triggerEasterEgg();
+                    }
+
+                    alert("愿望点亮成功！");
+                }).catch(() => alert("提交失败，请重试。"));
+            }, () => alert("无法获取位置，请检查权限"));
+        }
+
+        function triggerEasterEgg() {
+            const div = document.createElement("div");
+            div.innerText = "✨✨✨ 彩蛋触发 ✨✨✨";
+            div.style.position = "fixed";
+            div.style.top = "40%";
+            div.style.left = "50%";
+            div.style.transform = "translate(-50%, -50%)";
+            div.style.fontSize = "24px";
+            div.style.color = "#FF69B4";
+            div.style.backgroundColor = "rgba(0,0,0,0.7)";
+            div.style.padding = "20px";
+            div.style.borderRadius = "10px";
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2000);
+        }
+    </script>
+</body>
+</html>
