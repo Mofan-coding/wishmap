@@ -74,6 +74,7 @@
         const wish = document.getElementById('wishInput').value;
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
+        
 
         fetch('/api/submit', {
           method: 'POST',
@@ -100,6 +101,7 @@
           const lat = record.fields.Latitude;
           const lon = record.fields.Longitude;
           const wish = record.fields.Wish;
+          console.log('📍 Marker:', { wish, lat, lon });
 
           if (!wish || !lat || !lon) return;
           
